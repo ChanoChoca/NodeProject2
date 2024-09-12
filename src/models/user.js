@@ -3,22 +3,16 @@ import bcrypt from 'bcrypt';
 
 const userCollection = "users";
 
-/**
- * Define el esquema de Mongoose para el modelo de usuario.
- * Incluye campos para el nombre, apellido, email, rol y contraseña.
- */
 const userSchema = new mongoose.Schema({
     first_name: { type: String, required: true },
     last_name: { type: String, required: true },
     email: { type: String, required: true, unique: true },
-    role: { type: String, default: 'user' },
+    age: { type: Number, required: true },
     password: { type: String, required: true },
+    cart: { type: mongoose.Schema.Types.ObjectId, ref: 'Carts', required: false },
+    role: { type: String, default: 'user' },
 });
 
-/**
- * Middleware pre-save para el esquema de usuario.
- * Encripta la contraseña antes de guardar el usuario en la base de datos.
- */
 userSchema.pre('save', function(next) {
     if (this.isModified('password') || this.isNew) {
         this.password = bcrypt.hashSync(this.password, bcrypt.genSaltSync(10));
@@ -26,9 +20,6 @@ userSchema.pre('save', function(next) {
     next();
 });
 
-/**
- * Crea y exporta el modelo de Mongoose para el esquema de usuario.
- */
 const User = mongoose.model(userCollection, userSchema);
 
 export default User;
