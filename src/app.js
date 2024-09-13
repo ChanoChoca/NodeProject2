@@ -10,11 +10,11 @@ import viewsRouter from './routes/views.js';
 import passport from 'passport';
 import initializePassport from './config/passport.config.js';
 import dotenv from 'dotenv'
+import {isNotAuthenticated} from "./middleware/auth.js";
 dotenv.config()
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-// const PORT = 3000;
 
 app.engine('handlebars', engine({
     extname: '.handlebars',
@@ -30,11 +30,9 @@ app.use(cookieParser(process.env.SECRET_KEY));
 
 app.use(session({
     secretKey: process.env.SECRET_KEY,
-    // secretKey: 'secretKey',
     resave: false,
     saveUninitialized: true,
     store: MongoStore.create({
-        // mongoUrl: 'mongodb+srv://juanicaprioli16:RTQ0YzrJefi4z19y@cluster0.vzzl3.mongodb.net/integrative_practise?retryWrites=true&w=majority'
         mongoUrl: process.env.MONGO_URL,
         ttl: 15 * 60
     }),
@@ -47,6 +45,10 @@ app.use(passport.session());
 
 app.use('/api/sessions', sessionsRouter);
 app.use('/users', viewsRouter);
+
+app.get('/', isNotAuthenticated, (req, res) => {
+    res.render('main')
+})
 
 app.listen(PORT, () => {
     console.log(`Servidor escuchando en el puerto ${PORT}`);

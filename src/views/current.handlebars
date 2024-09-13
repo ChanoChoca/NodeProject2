@@ -1,3 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Welcome</title>
+</head>
+<body>
 <h1>Welcome, {{user.first_name}} {{user.last_name}}</h1>
 <p>Email: {{user.email}}</p>
 <p>Role: {{user.role}}</p>
+
+<form action="/api/sessions/logout" method="POST">
+    <button type="submit">Logout</button>
+</form>
+</body>
+</html>

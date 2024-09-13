@@ -1,12 +1,16 @@
 import passport from "passport";
 import local from 'passport-local';
+import jwt from 'passport-jwt';
 import userService from '../models/user.js';
-import { createHash, isValidPassword } from "../utils.js";
+import { isValidPassword } from "../utils.js";
+import dotenv from 'dotenv';
+dotenv.config();
 
 const LocalStrategy = local.Strategy;
+const JWTStrategy = jwt.Strategy;
+const ExtractJWT = jwt.ExtractJwt;
 
 const initializePassport = () => {
-
     passport.use('register', new LocalStrategy({
             passReqToCallback: true,
             usernameField: 'email'
@@ -24,7 +28,7 @@ const initializePassport = () => {
                     last_name,
                     email,
                     age,
-                    password: createHash(password)
+                    password
                 };
 
                 let result = await userService.create(newUser);
@@ -34,15 +38,6 @@ const initializePassport = () => {
             }
         }
     ));
-
-    passport.serializeUser((user, done) => {
-        done(null, user._id);
-    });
-
-    passport.deserializeUser(async (id, done) => {
-        let user = await userService.findById(id);
-        done(null, user);
-    });
 
     passport.use('login', new LocalStrategy({ usernameField: 'email' }, async (username, password, done) => {
         try {
@@ -57,6 +52,31 @@ const initializePassport = () => {
             return done(error);
         }
     }));
+
+    passport.use(new JWTStrategy({
+        jwtFromRequest: ExtractJWT.fromExtractors([(req) => req.signedCookies.currentUser]),
+        secretOrKey: process.env.JWT_SECRET
+    }, async (jwt_payload, done) => {
+        try {
+            const user = await userService.findById(jwt_payload.id);
+            if (user) {
+                return done(null, user);
+            } else {
+                return done(null, false);
+            }
+        } catch (error) {
+            return done(error, false);
+        }
+    }));
+
+    passport.serializeUser((user, done) => {
+        done(null, user._id);
+    });
+
+    passport.deserializeUser(async (id, done) => {
+        let user = await userService.findById(id);
+        done(null, user);
+    });
 }
 
 export default initializePassport;
