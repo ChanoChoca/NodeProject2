@@ -4,11 +4,13 @@ A Node project made with Express, where it is carried out thanks to the React co
 
 ## Screenshots
 
-![WoT App Screenshot](src/public/images/3.png)
+[//]: # (![WoT App Screenshot]&#40;src/public/images/3.png&#41;)
 
-![WoT App Screenshot](src/public/images/2.png)
+[//]: # ()
+[//]: # (![WoT App Screenshot]&#40;src/public/images/2.png&#41;)
 
-![WoT App Screenshot](src/public/images/1.png)
+[//]: # ()
+[//]: # (![WoT App Screenshot]&#40;src/public/images/1.png&#41;)
 
 
 ## Tools Used
@@ -33,7 +35,7 @@ A Node project made with Express, where it is carried out thanks to the React co
 
 Modify the [.env](.env.example) file with your configuration.
 
-* Install: `npm install express express-handlebars mongoose mongoose-paginate-v2 @fortawesome/fontawesome-free`
+* Install: `npm install`
 
 ## Testing
 
