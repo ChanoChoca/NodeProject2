@@ -6,6 +6,10 @@ import { engine } from 'express-handlebars';
 import mongoose from './config/database.js';
 import MongoStore from 'connect-mongo';
 import sessionsRouter from './routes/api/sessions.js';
+
+import cartsRouter from './routes/api/carts.js'
+import productsRouter from './routes/api/products.js'
+
 import viewsRouter from './routes/views.js';
 import passport from 'passport';
 import initializePassport from './config/passport.config.js';
@@ -44,6 +48,8 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 app.use('/api/sessions', sessionsRouter);
+app.use('/api/carts', cartsRouter);
+app.use('/api/products', productsRouter);
 app.use('/users', viewsRouter);
 
 app.get('/', isNotAuthenticated, (req, res) => {
