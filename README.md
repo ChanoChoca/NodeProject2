@@ -61,7 +61,7 @@ Modify the [.env](.env.example) file with your configuration.
 | `email`      | `string`   | **Required**. Your email           |
 | `age`        | `number`   | **Required**. Your age             |
 | `password`   | `string`   | **Required**. Your password        |
-| `cart`       | `ObjectId` | **Required**. Your cart            |
+| `cart`       | `ObjectId` | **Not required**. Your cart        |
 | `role`       | `string`   | **Required**. Your role            |
 
 ## Products

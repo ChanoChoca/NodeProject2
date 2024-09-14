@@ -1,8 +1,8 @@
 import passport from "passport";
 import local from 'passport-local';
 import jwt from 'passport-jwt';
-import userService from '../models/user.js';
-import cartService from '../models/cart.js'; // Asegúrate de importar el modelo de Cart
+import User from '../models/user.js'; // Asegúrate de importar el modelo correcto
+import Cart from '../models/cart.js'; // Asegúrate de importar el modelo de Cart
 import { isValidPassword } from "../utils.js";
 import dotenv from 'dotenv';
 dotenv.config();
@@ -18,10 +18,10 @@ const initializePassport = () => {
     }, async (req, username, password, done) => {
         const { first_name, last_name, email, age, cartId } = req.body;
         try {
-            let user = await userService.findOne({ email: username });
+            let user = await User.findOne({ email: username });
             if (user) {
                 console.log("El usuario ya existe");
-                return done(null, false);
+                return done(null, false, { message: 'El usuario ya existe' });
             }
 
             // Si no se proporciona un cartId, se crea un nuevo carrito
@@ -29,34 +29,34 @@ const initializePassport = () => {
             if (cartId) {
                 cart = cartId;
             } else {
-                const newCart = await cartService.create({});
+                const newCart = await Cart.create({});
                 cart = newCart._id;
             }
 
-            const newUser = {
+            const newUser = new User({
                 first_name,
                 last_name,
                 email,
                 age,
                 password,
                 cart
-            };
+            });
 
-            let result = await userService.create(newUser);
-            return done(null, result);
+            await newUser.save();
+            return done(null, newUser);
         } catch (error) {
-            return done("Error al registrar el usuario: " + error);
+            return done(error);
         }
     }));
 
     passport.use('login', new LocalStrategy({ usernameField: 'email' }, async (username, password, done) => {
         try {
-            const user = await userService.findOne({ email: username });
+            const user = await User.findOne({ email: username });
             if (!user) {
                 console.log("El usuario no existe");
-                return done(null, false);
+                return done(null, false, { message: 'Credenciales inválidas' });
             }
-            if (!isValidPassword(user, password)) return done(null, false);
+            if (!isValidPassword(user, password)) return done(null, false, { message: 'Credenciales inválidas' });
             return done(null, user);
         } catch (error) {
             return done(error);
@@ -64,11 +64,11 @@ const initializePassport = () => {
     }));
 
     passport.use(new JWTStrategy({
-        jwtFromRequest: ExtractJWT.fromExtractors([(req) => req.signedCookies.currentUser]),
+        jwtFromRequest: ExtractJWT.fromExtractors([ExtractJWT.fromExtractors([req => req.signedCookies.currentUser])]),
         secretOrKey: process.env.JWT_SECRET
     }, async (jwt_payload, done) => {
         try {
-            const user = await userService.findById(jwt_payload.id);
+            const user = await User.findById(jwt_payload.id);
             if (user) {
                 return done(null, user);
             } else {
@@ -84,8 +84,12 @@ const initializePassport = () => {
     });
 
     passport.deserializeUser(async (id, done) => {
-        let user = await userService.findById(id);
-        done(null, user);
+        try {
+            let user = await User.findById(id);
+            done(null, user);
+        } catch (error) {
+            done(error, null);
+        }
     });
 }
 

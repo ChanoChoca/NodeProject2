@@ -7,9 +7,6 @@ dotenv.config();
 
 const router = Router();
 
-// router.post('/register', passport.authenticate('register', { failureRedirect: '/failregister' }), async (req, res) => {
-//     res.send({ status: "success", message: "Usuario registrado" });
-// });
 router.post('/register', passport.authenticate('register', { failureRedirect: '/users/register' }), async (req, res) => {
     res.redirect('/users/login');
 });
