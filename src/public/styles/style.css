@@ -1,0 +1,7 @@
+@import url('https://fonts.googleapis.com/css2?family=Edu+AU+VIC+WA+NT+Hand:wght@400..700&display=swap');
+
+h1, h2, h3, h4, h5, h6, p, a, button, input, option, label, select {
+    font-family: 'Edu AU VIC WA NT Hand', sans-serif !important;
+    text-rendering: geometricPrecision !important;
+}
+

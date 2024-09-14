@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 import bcrypt from 'bcrypt';
 
-const userCollection = "users";
+const userCollection = "User";
 
 const userSchema = new mongoose.Schema({
     first_name: { type: String, required: true },

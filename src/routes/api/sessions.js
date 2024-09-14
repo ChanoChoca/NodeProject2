@@ -22,15 +22,13 @@ router.get('/failregister', async (req, res) => {
 router.post('/login', passport.authenticate('login', { failureRedirect: '/users/faillogin' }), async (req, res) => {
     if (!req.user) return res.status(400).send({ status: "error", error: "Credenciales inválidas" });
 
-    // Generar el JWT
     const token = jwt.sign({ id: req.user._id, email: req.user.email, role: req.user.role }, process.env.JWT_SECRET, { expiresIn: '1h' });
 
-    // Almacenar el JWT en una cookie firmada
     res.cookie('currentUser', token, { httpOnly: true, signed: true });
 
-    // Redirigir a /current si el login es exitoso
     res.redirect('/users/current');
 });
+
 
 router.post('/logout', (req, res) => {
     res.clearCookie('currentUser');

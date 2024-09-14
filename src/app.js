@@ -20,9 +20,15 @@ dotenv.config()
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+app.use(express.static('src/public'));
+
 app.engine('handlebars', engine({
     extname: '.handlebars',
-    defaultLayout: null
+    defaultLayout: null,
+    runtimeOptions: {
+        allowProtoMethodsByDefault: true,
+        allowProtoPropertiesByDefault: true
+    }
 }));
 app.set('view engine', 'handlebars');
 app.set('views', './src/views');

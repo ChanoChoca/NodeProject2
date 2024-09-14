@@ -108,8 +108,10 @@ router.post('/', async (req, res) => {
  */
 router.post('/:cid/products/:pid', async (req, res) => {
     try {
-        const cart = await Cart.findById(req.params.cid);
-        const product = await Product.findById(req.params.pid);
+        const cartId = req.params.cid;
+        const productId = req.params.pid;
+        const cart = await Cart.findById(cartId);
+        const product = await Product.findById(productId);
 
         if (!cart) {
             return res.status(404).json({ status: 'error', message: 'Cart not found' });
@@ -119,11 +121,11 @@ router.post('/:cid/products/:pid', async (req, res) => {
             return res.status(404).json({ status: 'error', message: 'Product not found' });
         }
 
-        const productIndex = cart.products.findIndex(p => p.product.toString() === req.params.pid);
+        const productIndex = cart.products.findIndex(p => p.product.toString() === productId);
         if (productIndex !== -1) {
             cart.products[productIndex].quantity += 1;
         } else {
-            cart.products.push({ product: req.params.pid, quantity: 1 });
+            cart.products.push({ product: productId, quantity: 1 });
         }
 
         await cart.save();
@@ -132,6 +134,7 @@ router.post('/:cid/products/:pid', async (req, res) => {
         res.status(400).json({ status: 'error', message: 'Error adding product to cart', error: error.message });
     }
 });
+
 
 /**
  *
@@ -149,12 +152,15 @@ router.post('/:cid/products/:pid', async (req, res) => {
  */
 router.delete('/:cid/products/:pid', async (req, res) => {
     try {
-        const cart = await Cart.findById(req.params.cid);
+        const cartId = req.params.cid;
+        const productId = req.params.pid;
+        const cart = await Cart.findById(cartId);
+
         if (!cart) {
             return res.status(404).json({ status: 'error', message: 'Cart not found' });
         }
 
-        const productIndex = cart.products.findIndex(p => p.product.toString() === req.params.pid);
+        const productIndex = cart.products.findIndex(p => p.product.toString() === productId);
         if (productIndex === -1) {
             return res.status(404).json({ status: 'error', message: 'Product not found in cart' });
         }
