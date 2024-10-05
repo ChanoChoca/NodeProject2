@@ -16,7 +16,6 @@ export const isAuthenticated = (req, res, next) => {
             return res.redirect('/users/login');
         }
 
-        // Asegúrate de asignar el ID al req.user
         req.user = { id: decoded.id, email: decoded.email, role: decoded.role };
         next();
     });

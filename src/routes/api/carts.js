@@ -1,14 +1,10 @@
 import { Router } from 'express';
 import Cart from '../../models/cart.js';
 import Product from '../../models/product.js';
+import {isUser} from "../../middleware/authorization.js";
 
 const router = Router();
 
-/**
- *
- * Lista los productos que pertenezcan al carrito. VER
- *
- */
 router.get('/', async (req, res) => {
     try {
         const carts = await Cart.find().populate('products.product');
@@ -18,13 +14,6 @@ router.get('/', async (req, res) => {
     }
 });
 
-/**
- *
- * Lista los productos que pertenezcan al carrito con el parámetro cid proporcionados.
- *
- * El _id del carrito es: 66b16aa3a5164ce39074e7b5
- *
- */
 router.get('/:cid', async (req, res) => {
     try {
         const cart = await Cart.findById(req.params.cid).populate('products.product');
@@ -38,20 +27,6 @@ router.get('/:cid', async (req, res) => {
     }
 });
 
-/**
- *
- * Crea un nuevo carrito con la siguiente estructura.
- *
- * El formato por Postman, por ejemplo, debe ser el siguiente:
- * {
- *   "products": [
- *     {
- *       "product": "66accb55ea9c8230040fa023",
- *       "quantity": 10
- *     }
- *   ]
- * }
- */
 router.post('/', async (req, res) => {
     try {
         const { products } = req.body;
@@ -92,21 +67,7 @@ router.post('/', async (req, res) => {
     }
 });
 
-/**
- *
- * Agrega el producto al arreglo “products” del carrito seleccionado, agregándose como un objeto bajo el siguiente formato.
- *
- * El formato por Postman, por ejemplo, debe ser el siguiente:
- * {
- *   "products": [
- *     {
- *       "product": "66accb55ea9c8230040fa023",
- *       "quantity": 10
- *     }
- *   ]
- * }
- */
-router.post('/:cid/products/:pid', async (req, res) => {
+router.post('/:cid/products/:pid', isUser, async (req, res) => {
     try {
         const cartId = req.params.cid;
         const productId = req.params.pid;
@@ -135,21 +96,6 @@ router.post('/:cid/products/:pid', async (req, res) => {
     }
 });
 
-
-/**
- *
- * Elimina del carrito el producto seleccionado.
- *
- * El formato por Postman, por ejemplo, debe ser el siguiente:
- * {
- *   "products": [
- *     {
- *       "product": "66accb55ea9c8230040fa023",
- *       "quantity": 10
- *     }
- *   ]
- * }
- */
 router.delete('/:cid/products/:pid', async (req, res) => {
     try {
         const cartId = req.params.cid;
@@ -174,22 +120,6 @@ router.delete('/:cid/products/:pid', async (req, res) => {
     }
 });
 
-/**
- *
- * Actualiza el carrito con un arreglo de productos con el formato especificado arriba.
- *
- * A diferencia del endpoint '/:cid/products/:pid', en este endpoint si hay otros productos en el carrito, los elimina.
- *
- * El formato por Postman, por ejemplo, debe ser el siguiente:
- * {
- *   "products": [
- *     {
- *       "product": "66accb55ea9c8230040fa023",
- *       "quantity": 10
- *     }
- *   ]
- * }
- */
 router.put('/:cid', async (req, res) => {
     try {
         const { products } = req.body;
@@ -223,16 +153,6 @@ router.put('/:cid', async (req, res) => {
     }
 });
 
-/**
- *
- * Actualiza SÓLO la cantidad de ejemplares del producto por cualquier cantidad pasada desde req.body
- *
- * El formato por Postman, por ejemplo, debe ser el siguiente:
- * {
- *     "product": "66accb55ea9c8230040fa023",
- *     "quantity": 10
- * }
- */
 router.put('/:cid/products/:pid', async (req, res) => {
     try {
         const { quantity } = req.body;
@@ -259,11 +179,6 @@ router.put('/:cid/products/:pid', async (req, res) => {
     }
 });
 
-/**
- *
- * Elimina todos los productos del carrito
- *
- */
 router.delete('/:cid', async (req, res) => {
     try {
         const cart = await Cart.findById(req.params.cid);
@@ -277,6 +192,78 @@ router.delete('/:cid', async (req, res) => {
         res.status(200).json(cart);
     } catch (error) {
         res.status(500).json({ status: 'error', message: 'Error clearing cart', error: error.message });
+    }
+});
+
+import Ticket from '../../models/ticket.js';
+import CartDAO from '../../dao/CartDAO.js';
+import nodemailer from 'nodemailer'
+import dotenv from "dotenv";
+dotenv.config()
+
+const transport = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: process.env.USER_GMAIL,
+        pass: process.env.GMAIL_APP_PASSWORD
+    }
+});
+
+//TODO: verificar
+router.post('/:cid/purchase', isUser, async (req, res) => {
+    try {
+        const cart = await CartDAO.findById(req.params.cid);
+        if (!cart) {
+            return res.status(404).json({ status: 'error', message: 'Cart not found' });
+        }
+
+        let totalAmount = 0;
+        const unprocessedProducts = [];
+
+        for (const item of cart.products) {
+            const product = item.product;
+            if (product.stock >= item.quantity) {
+                product.stock -= item.quantity;
+                totalAmount += product.price * item.quantity;
+                await product.save();
+            } else {
+                unprocessedProducts.push(item.product._id);
+            }
+        }
+
+        const ticket = new Ticket({
+            code: `TICKET-${Date.now()}`,
+            amount: totalAmount,
+            purchaser: req.user.email
+        });
+
+        await ticket.save();
+
+        cart.products = cart.products.filter(item => unprocessedProducts.includes(item.product._id));
+        await cart.save();
+
+        // Send email notification
+        try {
+            await transport.sendMail({
+                from: process.env.USER_GMAIL,
+                to: req.user.email,
+                subject: 'Purchase Confirmation',
+                html: `
+                <div>
+                    <h1>Thank you for your purchase!</h1>
+                    <p>Your purchase code is: ${ticket.code}</p>
+                    <p>Total amount: $${totalAmount}</p>
+                </div>
+            `,
+                attachments: []
+            });
+        } catch (emailError) {
+            return res.status(500).json({ status: 'error', message: 'Purchase completed, but failed to send confirmation email. Please check your email address.' });
+        }
+
+        res.status(200).json({ status: 'success', ticket, unprocessedProducts });
+    } catch (error) {
+        res.status(500).json({ status: 'error', message: 'Error processing purchase', error: error.message });
     }
 });
 

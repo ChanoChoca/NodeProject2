@@ -1,8 +1,8 @@
 import passport from "passport";
 import local from 'passport-local';
 import jwt from 'passport-jwt';
-import User from '../models/user.js'; // Asegúrate de importar el modelo correcto
-import Cart from '../models/cart.js'; // Asegúrate de importar el modelo de Cart
+import User from '../models/user.js';
+import Cart from '../models/cart.js';
 import { isValidPassword } from "../utils.js";
 import dotenv from 'dotenv';
 dotenv.config();
@@ -24,7 +24,6 @@ const initializePassport = () => {
                 return done(null, false, { message: 'El usuario ya existe' });
             }
 
-            // Si no se proporciona un cartId, se crea un nuevo carrito
             let cart;
             if (cartId) {
                 cart = cartId;
