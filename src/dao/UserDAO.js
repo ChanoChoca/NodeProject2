@@ -2,7 +2,15 @@ import User from '../models/user.js';
 
 class UserDAO {
     async findById(id) {
-        return User.findById(id).populate('cart');
+        return User.findById(id)
+            .populate({
+                path: 'cart',
+                populate: {
+                    path: 'products.product',
+                    model: 'Product',
+                    select: 'title description price stock category status'
+                }
+            });
     }
 
     async findByEmail(email) {

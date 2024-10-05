@@ -1,8 +1,7 @@
 import { Router } from 'express';
 import { isAuthenticated, isNotAuthenticated } from '../middleware/auth.js';
-import Product from '../models/product.js';
-import CartDTO from "../models/cart.js";
-import User from "../models/user.js";
+import ProductService from '../services/ProductService.js';
+import UserRepository from '../repository/UserRepository.js';
 import UserDTO from "../dto/UserDTO.js";
 
 const router = Router();
@@ -21,12 +20,12 @@ router.get('/current', isAuthenticated, async (req, res) => {
             return res.status(401).send('Unauthorized');
         }
 
-        const user = await User.findById(req.user.id).populate('cart').lean();
+        const user = await UserRepository.getUserById(req.user.id);
         if (!user) {
             return res.status(404).send('User not found');
         }
 
-        const userDTO = new UserDTO(user); // Create a UserDTO instance
+        const userDTO = new UserDTO(user);
 
         res.render('current', { user: userDTO, cart: user.cart });
     } catch (error) {
@@ -45,16 +44,7 @@ router.get('/carts/:cid', isAuthenticated, async (req, res) => {
             return res.status(401).send('Unauthorized');
         }
 
-        const user = await User.findById(req.user.id)
-            .populate({
-                path: 'cart',
-                populate: {
-                    path: 'products.product',
-                    model: 'Product'
-                }
-            })
-            .lean();
-
+        const user = await UserRepository.getUserById(req.user.id);
         if (!user) {
             return res.status(404).send('User not found');
         }
@@ -65,7 +55,6 @@ router.get('/carts/:cid', isAuthenticated, async (req, res) => {
         res.status(500).send('Internal Server Error');
     }
 });
-
 
 router.get('/products', isAuthenticated, async (req, res) => {
     try {
@@ -88,9 +77,9 @@ router.get('/products', isAuthenticated, async (req, res) => {
             sort: sortOption
         };
 
-        const result = await Product.paginate(queryOption, options);
+        const result = await ProductService.getAllProducts(queryOption, options);
 
-        const user = await User.findById(req.user.id).populate('cart').lean();
+        const user = await UserRepository.getUserById(req.user.id);
 
         res.render('products', {
             products: result.docs,
@@ -111,12 +100,12 @@ router.get('/products', isAuthenticated, async (req, res) => {
 
 router.get('/products/:pid', isAuthenticated, async (req, res) => {
     try {
-        const product = await Product.findById(req.params.pid);
+        const product = await ProductService.getProductById(req.params.pid);
         if (!product) {
             return res.status(404).send('Product not found');
         }
 
-        const user = await User.findById(req.user.id).populate('cart').lean();
+        const user = await UserRepository.getUserById(req.user.id);
 
         res.render('product', {
             product,

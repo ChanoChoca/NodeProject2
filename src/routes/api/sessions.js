@@ -1,5 +1,4 @@
 import { Router } from 'express';
-import User from '../../models/user.js';
 import jwt from 'jsonwebtoken';
 import passport from 'passport';
 import dotenv from 'dotenv';

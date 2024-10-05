@@ -1,4 +1,3 @@
-// src/repositories/CartRepository.js
 import CartDAO from '../dao/CartDAO.js';
 
 class CartRepository {

@@ -1,4 +1,3 @@
-// src/dtos/UserDTO.js
 class UserDTO {
     constructor(user) {
         this.id = user._id;

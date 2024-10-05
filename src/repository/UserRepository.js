@@ -1,4 +1,3 @@
-// src/repositories/UserRepository.js
 import UserDAO from '../dao/UserDAO.js';
 
 class UserRepository {
