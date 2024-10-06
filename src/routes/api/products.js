@@ -4,6 +4,11 @@ import { isAdmin } from '../../middleware/authorization.js';
 
 const router = Router();
 
+/**
+ *
+ * Lista todos los productos de la base.
+ *
+ */
 router.get('/', async (req, res) => {
     try {
         const { limit = 10, page = 1, sort = '', query = '' } = req.query;
@@ -38,6 +43,11 @@ router.get('/', async (req, res) => {
     }
 });
 
+/**
+ *
+ * Trae sólo el producto con el id proporcionado.
+ *
+ */
 router.get('/:pid', async (req, res) => {
     try {
         const product = await ProductService.getProductById(req.params.pid);
@@ -47,6 +57,21 @@ router.get('/:pid', async (req, res) => {
     }
 });
 
+/**
+ *
+ * Agrega un nuevo producto con los campos.
+ *
+ * El formato por Postman, por ejemplo, debe ser el siguiente:
+ * {
+ *     "title": "Product",
+ *     "description": "Descripción del producto",
+ *     "code": "PROD001",
+ *     "price": 25,
+ *     "stock": 10,
+ *     "category": "Categoria",
+ *     "thumbnails": ["https://cdn.pixabay.com/photo/2023/07/27/11/42/mountain-8153221_1280.jpg", "https://images.unsplash.com/photo-1721332154191-ba5f1534266e?q=80&w=1035&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDF8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"]
+ * }
+ */
 router.post('/', isAdmin, async (req, res) => {
     try {
         const { title, description, code, price, stock, category, thumbnails } = req.body;
@@ -62,6 +87,21 @@ router.post('/', isAdmin, async (req, res) => {
     }
 });
 
+/**
+ *
+ * Toma un producto y lo actualiza por los campos enviados desde body. NUNCA se actualiza o elimina el id al momento de hacer dicha actualización.
+ *
+ * El formato por Postman, por ejemplo, debe ser el siguiente:
+ * {
+ *     "title": "Product",
+ *     "description": "Descripción del producto",
+ *     "code": "PROD001",
+ *     "price": 100,
+ *     "stock": 10,
+ *     "category": "Categoria",
+ *     "thumbnails": ["https://cdn.pixabay.com/photo/2023/07/27/11/42/mountain-8153221_1280.jpg", "https://images.unsplash.com/photo-1721332154191-ba5f1534266e?q=80&w=1035&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDF8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"]
+ * }
+ */
 router.put('/:pid', isAdmin, async (req, res) => {
     try {
         const { title, description, code, price, stock, category, thumbnails } = req.body;
@@ -77,6 +117,11 @@ router.put('/:pid', isAdmin, async (req, res) => {
     }
 });
 
+/**
+ *
+ * Elimina el producto con el pid indicado.
+ *
+ */
 router.delete('/:pid', isAdmin, async (req, res) => {
     try {
         await ProductService.deleteProduct(req.params.pid);

@@ -38,4 +38,28 @@ router.get('/current', passport.authenticate('jwt', { session: false }), async (
     res.send(req.user);
 });
 
+import UserService from '../../services/UserService.js';
+
+/**
+ *
+ * Modifica el rol de un usuario.
+ *
+ * El formato por Postman, por ejemplo, debe ser el siguiente:
+ * {
+ * "newRole": "admin"
+ * }
+ *
+ */
+router.put('/:id', async (req, res) => {
+    const { id } = req.params;
+    const { newRole } = req.body;
+
+    try {
+        const updatedUser = await UserService.updateUserRole(id, newRole);
+        res.send({ status: "success", message: "Rol actualizado correctamente", user: updatedUser });
+    } catch (error) {
+        res.status(500).send({ error: error.message });
+    }
+});
+
 export default router;

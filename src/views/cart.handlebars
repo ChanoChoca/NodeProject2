@@ -42,6 +42,10 @@
     </div>
 </section>
 
+{{#unless user.cart.products.length}}
+    <h2 class="text-center">No se encontraron productos</h2>
+{{/unless}}
+
 <section class="d-flex flex-column gap-3 my-5 pb-5">
     <a class="btn btn-lg btn-outline-primary" href="/users/products">
         <i class="fa-solid fa-circle-info me-3"></i>Ir a la lista de productos

@@ -32,6 +32,21 @@ class UserService {
             throw new Error(`Error creating user: ${error.message}`);
         }
     }
+
+    async updateUserRole(userId, newRole) {
+        try {
+            const user = await UserRepository.getUserById(userId);
+            if (!user) {
+                throw new Error('User not found');
+            }
+
+            user.role = newRole;
+            await user.save();
+            return user;
+        } catch (error) {
+            throw new Error(`Error updating user role: ${error.message}`);
+        }
+    }
 }
 
 export default new UserService();

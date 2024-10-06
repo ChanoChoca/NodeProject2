@@ -105,29 +105,70 @@ class CartService {
             const cart = await this.getCartById(cid);
             let totalAmount = 0;
             const unprocessedProducts = [];
+            const productDetails = [];
 
             for (const item of cart.products) {
                 const product = await ProductRepository.getProductById(item.product);
                 if (product.stock >= item.quantity) {
+                    // Calcular subtotal del producto
+                    const subtotal = product.price * item.quantity;
+                    totalAmount += subtotal;
+
+                    // Reducir stock
                     product.stock -= item.quantity;
-                    totalAmount += product.price * item.quantity;
                     await ProductRepository.updateProduct(product._id, product);
+
+                    // Añadir los detalles del producto procesado
+                    productDetails.push({
+                        title: product.title,   // Añadir el nombre del producto
+                        price: product.price,   // Precio del producto
+                        quantity: item.quantity, // Cantidad comprada
+                        subtotal: subtotal      // Subtotal calculado
+                    });
                 } else {
-                    unprocessedProducts.push(item.product);
+                    // Si no hay suficiente stock, añadir a productos no procesados
+                    unprocessedProducts.push({ productId: item.product, title: product.title });
                 }
             }
 
             const ticket = {
                 code: `TICKET-${Date.now()}`,
                 amount: totalAmount,
-                purchaser: userEmail
+                purchaser: userEmail,
+                productDetails: productDetails  // Incluir los detalles del producto en el ticket
             };
 
+            // Enviar el correo de confirmación de la compra
             await EmailService.sendPurchaseConfirmation(userEmail, ticket, totalAmount);
 
             return { ticket, unprocessedProducts };
         } catch (error) {
             throw new Error('Error processing purchase: ' + error.message);
+        }
+    }
+
+    async updateProductQuantity(cid, productId, quantity) {
+        try {
+            const cart = await this.getCartById(cid);
+            if (!cart) {
+                throw new Error('Cart not found');
+            }
+
+            // Find the product in the cart
+            const productIndex = cart.products.findIndex(p => p.product._id.toString() === productId.toString());
+            if (productIndex === -1) {
+                throw new Error('Product not found in cart');
+            }
+
+            // Update the quantity
+            cart.products[productIndex].quantity = quantity;
+
+            // Save the updated cart
+            await CartRepository.updateCart(cart._id, cart);
+
+            return cart;
+        } catch (error) {
+            throw new Error('Error updating product quantity: ' + error.message);
         }
     }
 }
