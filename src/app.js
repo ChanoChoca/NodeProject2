@@ -5,12 +5,12 @@ import cookieParser from 'cookie-parser';
 import { engine } from 'express-handlebars';
 import mongoose from './config/database.js';
 import MongoStore from 'connect-mongo';
-import sessionsRouter from './routes/api/sessions.js';
+import sessionsRouter from './routes/api/SessionController.js';
 
-import cartsRouter from './routes/api/carts.js'
-import productsRouter from './routes/api/products.js'
+import cartsRouter from './routes/api/CartController.js'
+import productsRouter from './routes/api/ProductController.js'
 
-import viewsRouter from './routes/views.js';
+import viewsRouter from './routes/ViewController.js';
 import passport from 'passport';
 import initializePassport from './config/passport.config.js';
 import dotenv from 'dotenv'
