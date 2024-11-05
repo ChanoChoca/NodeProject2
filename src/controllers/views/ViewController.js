@@ -1,8 +1,8 @@
 import { Router } from 'express';
-import { isAuthenticated, isNotAuthenticated } from '../middleware/auth.js';
-import ProductService from '../services/ProductService.js';
-import UserRepository from '../repository/UserRepository.js';
-import UserDTO from "../dto/UserDTO.js";
+import { isAuthenticated, isNotAuthenticated } from '../../middleware/auth.js';
+import ProductService from '../../services/ProductService.js';
+import UserRepository from '../../repository/UserRepository.js';
+import UserDTO from "../../dto/UserDTO.js";
 
 const router = Router();
 
